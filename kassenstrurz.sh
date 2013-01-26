@@ -1,8 +1,9 @@
 #!/bin/sh
 # this script does grab the faszination wissen...
 
-BASE_URL=http://www.videoportal.sf.tv
-INDEX_URL="${BASE_URL}/suche?query=kassensturz;sort=re&page="
+http://www.srf.ch/player/tv/suche?query=kassensturz&sort=re&page=1
+BASE_URL=http://www.srf.ch/player/tv
+INDEX_URL="${BASE_URL}/suche?query=kassensturz&sort=re&page="
 
 TEMP_DIR=./temp
 VIDEO_DIR=./videos
@@ -20,19 +21,24 @@ then
 	mkdir -p ${VIDEO_DIR}
 fi
 
-
+# index begining
+IDX=1
+while [ ${IDX} -le 4 ]
+do
 # grab the index url
 # remove the exisiting index first
 rm -f ${TEMP_DIR}/index
 # get the first page...
-wget ${WGET_OPTIONS} ${INDEX_URL}2 -O ${TEMP_DIR}/index
+wget ${WGET_OPTIONS} ${INDEX_URL}${IDX} -O ${TEMP_DIR}/index
 # extract the last page from the index
 #LAST_PAGE=`cat ${TEMP_DIR}/index| sed -e "s#.*>\([0-9]\+\)</a><a href=\"/suche.*page=2\">n.* Seite</a>.*#\1#g`
 echo "Last page: ${LAST_PAGE}"
 
+# pattern for episode
+#<a class="result_title" href="/player/tv/kassensturz/video/kassensturz-vom-18-09-2012?id=6b2d4b96-9e7b-4ec0-9786-94ab8adf6430">Kassensturz vom 18.09.2012</a><div class="result_infos">
 
 # extract the episodes from the index
-cat ${TEMP_DIR}/index| sed -e "s#</h3><p class=#\n</h3><p class=#g" | grep -e ".* href=\"/video[^\"]*[0-9]\">Kassensturz vom .*</a>" | sed -e "s#.*href=\"\(/video.*[0-9]\)\".*#\1#g" > ${TEMP_DIR}/episode.txt
+cat ${TEMP_DIR}/index | grep -e ".* href=\"/player/tv/kassensturz/video/kassensturz-vom-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9].*\">Kassensturz vom .*</a>" | sed -e "s#.*href=\"/player/tv\(/kassensturz/video/kassensturz-vom-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9][^\"]*\)\".*#\1#g" > ${TEMP_DIR}/episode.txt
 
 EPISODE_LIST=`cat ${TEMP_DIR}/episode.txt`
 for episode in ${EPISODE_LIST}
@@ -48,4 +54,5 @@ do
 		wget ${WGET_OPTIONS} ${EPISODE_DL} -O ${VIDEO_DIR}/${EPISODE_HASH}.m4v
 	fi
 done
-
+IDX=`expr ${IDX} + 1`
+done # while
