@@ -23,7 +23,7 @@ fi
 
 # index begining
 IDX=1
-while [ ${IDX} -le 4 ]
+while [ ${IDX} -le 8 ]
 do
 # grab the index url
 # remove the exisiting index first
@@ -45,13 +45,15 @@ for episode in ${EPISODE_LIST}
 do
 	EPISODE_HASH=`echo ${episode} | sed -e "s#.*-\([^-]*\)#\1#g"`
 	#EPISODE_NAME=`basename ${episode} | sed -e "s/.html//g"`
-	echo "Getting episode: ${EPISODE_HASH} ..."
+	echo "Getting link to episode: ${EPISODE_HASH} ..."
 	wget ${WGET_OPTIONS} ${BASE_URL}/${episode} -O ${TEMP_DIR}/${EPISODE_HASH} --quiet
 	EPISODE_DL=`cat ${TEMP_DIR}/${EPISODE_HASH} | sed -e "s#;#;\n#g" | grep "window.location.href=" | sed -e "s#.*setTimeout('window.location.href=[\][']\(http:.*m4v\?\).*#\1#g" | head -n 1`
-	if [ ! -f ${VIDEO_DIR}/${EPISODE_HASH}.m4v ]
+	EPISODE_NAME_DATE=`echo ${EPISODE_DL} | sed -e "s#.*/\(kassensturz_.*m4v\).*#\1#"`
+	echo "Try to downloading $EPISODE_NAME_DATE"
+	if [ ! -f ${VIDEO_DIR}/${EPISODE_NAME_DATE} ]
 	then
-		echo "grabbing ${EPISODE_HASH}.m4v from url: ${EPISODE_DL}"
-		wget ${WGET_OPTIONS} ${EPISODE_DL} -O ${VIDEO_DIR}/${EPISODE_HASH}.m4v
+		echo "grabbing ${EPISODE_NAME_DATE} from url: ${EPISODE_DL}"
+		wget ${WGET_OPTIONS} ${EPISODE_DL} -O ${VIDEO_DIR}/${EPISODE_NAME_DATE}
 	fi
 done
 IDX=`expr ${IDX} + 1`
